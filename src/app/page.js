@@ -1,95 +1,85 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+'use client'
+
+import React, { useEffect } from 'react';
+import Stack from '@mui/material/Stack';
+import ImageUploading from 'react-images-uploading';
+import Button from '@mui/material/Button';
+import axios from 'axios';
 
 export default function Home() {
+  const [images, setImages] = React.useState([]);
+  const maxNumber = 69;
+
+  const onChange = (imageList, addUpdateIndex) => {
+    // data for submit
+    console.log(imageList, addUpdateIndex);
+    setImages(imageList);
+  };
+  
+  useEffect(() => {
+    if (images.length > 0) {
+      var formData = new FormData();
+      // formData.append("file", images[0]);
+      axios.post("http://127.0.0.1:8000/uploadfile/", formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'name': 'input_file'
+        }
+      })
+    }
+  }, [images])
+
+  // useEffect(() => {
+  //   axios.get("http://127.0.0.1:8000/", {})
+  // }, [images])
+
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.js</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+    <Stack justifyContent={'center'} alignItems={'center'} marginTop={10}>
+      <ImageUploading
+        multiple
+        value={images}
+        onChange={onChange}
+        maxNumber={maxNumber}
+        dataURLKey="data_url"
+      >
+        {({
+          imageList,
+          onImageUpload,
+          onImageRemoveAll,
+          onImageUpdate,
+          onImageRemove,
+          isDragging,
+          dragProps,
+        }) => (
+          // write your building UI
+          <Stack alignItems={'center'}>
+            <Stack flexDirection={'row'}>
+              <Button variant="contained"
+                style={isDragging ? { color: 'red' } : undefined}
+                onClick={onImageUpload}
+                {...dragProps}
+              >
+                Click or Drop here
+              </Button>
+              &nbsp;
+              <Button variant="contained" onClick={onImageRemoveAll}>Remove all images</Button>
+            </Stack>
+            <Stack height={500} overflow={'scroll'} marginTop={5}>
+              {imageList.map((image, index) => (
+                <Stack key={index} className="image-item" marginTop={2} padding={2} sx={{border: 1, borderColor: 'gray'}}>
+                  <img src={image['data_url']} alt="" width="300" />
+                  <Stack className="image-item__btn-wrapper" alignItems={'center'} >
+                    <Stack flexDirection={'row'} gap={1} marginTop={1}>
+                      <Button variant="outlined" onClick={() => onImageUpdate(index)}>Update</Button>
+                      <Button variant="outlined" onClick={() => onImageRemove(index)}>Remove</Button>
+                    </Stack>
+                  </Stack>
+                </Stack>
+              ))}
+            </Stack>
+          </Stack>
+        )}
+      </ImageUploading>
+    </Stack>
   );
 }
