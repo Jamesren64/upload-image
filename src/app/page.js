@@ -84,7 +84,7 @@ export default function Home() {
     if (images.length > 0) {
       var formData = new FormData();
       formData.append("file", images[0].file);
-      axios.post("http://james-image-translation-d10e77b3ae74.herokuapp.com/uploadfile/", formData, {})
+      axios.post("https://james-image-translation-d10e77b3ae74.herokuapp.com/uploadfile/", formData, {})
         .then(response => {
           console.log(Object.keys(response.data))
           setText(response.data.text)
