@@ -11,19 +11,17 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import RadioGroup from '@mui/material/RadioGroup';
 import { useRef } from 'react';
 import UploadImage from './UploadImage';
+import CurrentStack from './CurrentStack';
 
 export default function Home() {
   const [images, setImages] = React.useState([]);
   const [text, setText] = React.useState(undefined);
   const [translatedText, setTranslatedText] = React.useState(undefined)
-  const [outputType, setOutputType] = React.useState('mochi')
   const maxNumber = 69;
   
-  console.log(outputType)
 
-  
   const deckId = "[[rYkfrjIi]]"
-  const rowsRef = useRef([]);
+  const [rows, setRows] = React.useState([]);
   const addFlashcards = () => {
     
     const row = 
@@ -31,42 +29,20 @@ export default function Home() {
           translatedText.replaceAll("\n", " ").replaceAll("\t", " ").replaceAll('&#39;', '\''), 
           text.replaceAll("\n", " ").replaceAll("\t", " ").replaceAll('&#39;', '\'')
         ]
-    rowsRef.current = [
-      ...rowsRef.current,
+    setRows([
+      ...rows,
       row
-    ]
+    ]) 
   }
 
   const makeFlashcards = () => {
-    if (outputType === 'mochi') {
-      const headers = {
-        "Authorization": "Basic NzI3MTQ3NGRkYzFkMDYxNzQwZTlhMGU2Og=="
-      }
-      axios.post(`https://app.mochi.cards/api/cards/?deck-id=${deckId}&content=card`, {
-        "content": "front/back test.",
-        "deck-id": "nXXd2JvP",
-        "fields": {
-          "name": {
-            "id": "name",
-            "value": text
-          },
-          "V72yjxYh": {
-            "id": "V72yjxYh",
-            "value": translatedText
-          }
-        }
-      }, {
-        "headers": headers
-      })
-      }
-    else {
-      const tabJoined = rowsRef.current.map(e => e.join("\t"))
+      const tabJoined = rows.map(e => e.join("\t"))
       const newlineJoined = tabJoined.join("\n")
       let tsvContent = "data:text/tab-separated-values;charset=utf-8," 
           + newlineJoined;
-      console.log('tabJoined', tabJoined)
-      console.log('newlineJoined', newlineJoined)
-      console.log('tsvContent', tsvContent)
+      // console.log('tabJoined', tabJoined)
+      // console.log('newlineJoined', newlineJoined)
+      // console.log('tsvContent', tsvContent)
 
       var encodedUri = encodeURI(tsvContent);
       var link = document.createElement("a");
@@ -75,7 +51,6 @@ export default function Home() {
       document.body.appendChild(link); // Required for FF
       
       link.click();
-    }
   }
   
     
@@ -98,49 +73,36 @@ export default function Home() {
   }
 
   return (
-    <Stack gap={15} justifyContent={'center'} alignItems={'center'} marginTop={10} flexDirection={'row'} >
-      <UploadImage 
-        images = {images}
-        setImages = {setImages}
-        makeFlashcards = {makeFlashcards}
-        addFlashcards = {addFlashcards}
-      />
-      
-      <Stack>
-      
-      {!!text && 
-        <>
-          <Typography variant='h5'>Original Text</Typography>
-          <Stack padding={2} width={400} height={200} marginBottom={3} sx={{border: 1, borderColor: 'gray'}} overflow={'scroll'}>
-            {text}
-          </Stack>
-        </>
-      }
-      
-      
-      {!!translatedText && 
-      <>
-      <Typography variant='h5'>Translated Text</Typography>
-      <Stack padding={2} width={400} height={200} marginBottom={3} sx={{border: 1, borderColor: 'gray'}} overflow={'scroll'}>
-        {translatedText}
+    <>
+      <Stack alignItems={'center'}>
+        <Typography variant="h4" marginTop={1}>Flashcard Generator</Typography>
+        <Typography variant="body1">Upload an image to translate and make into a flashcard.</Typography>
       </Stack>
-      </>
-      }
       
-      <Stack flexDirection={'row'} gap={1}>
-        <RadioGroup>
-          <FormControl>
-            <FormControlLabel value="mochi" onChange={onOutputTypeSelect} checked={outputType === 'mochi'} control={<Radio />} label="Mochi" />
-            <FormControlLabel value="csv" onChange={onOutputTypeSelect} checked={outputType === 'csv'} control={<Radio />} label="CSV File" />
-          </FormControl>
-        </RadioGroup>
-        <Stack justifyContent={'center'} sx={{minHeight: '100%'}}>
-          <Button sx={{height: 50}} variant='contained' onClick={makeFlashcards}>Make Flashcards</Button>
+      <Stack className="OUTER_DIV" gap={15} justifyContent={'center'} alignItems={'center'} flexDirection={'row'} height={"100%"}>
+        <Stack className="OUTER_STACK1" flexDirection={'column'} width={'50%'} gap={4} height={"100%"} justifyContent={'center'} alignItems={'center'}>
+            <UploadImage 
+              images = {images}
+              setImages = {setImages}
+              makeFlashcards = {makeFlashcards}
+              addFlashcards = {addFlashcards}
+              text = {text}
+              translatedText={translatedText}
+            />
+        </Stack>
+
+        <Stack className='OUTER_STACK2'>
+          <Stack height={547.5} justifyContent={'flex-start'} alignItems={'center'}>
+            <CurrentStack 
+              rows = {rows}
+            />
+          </Stack>
+
+          <Stack justifyContent={'center'} alignItems={'center'} sx={{minHeight: '100%'}}>
+            <Button sx={{width:200, marginTop:3}} variant='contained' onClick={makeFlashcards}>Export To CSV</Button>
+          </Stack>
         </Stack>
       </Stack>
-    </Stack>
-
-      
-    </Stack>
+    </>
   );
 }
